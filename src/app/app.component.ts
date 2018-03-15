@@ -1,6 +1,5 @@
 import { OperatorType, NumericOperationEvent, CalculatorService, InputActionsService } from './model';
 import { Component } from '@angular/core';
-import { Key } from 'protractor';
 
 
 @Component({
@@ -25,7 +24,13 @@ reset(input:HTMLInputElement){
   input.dispatchEvent(new Event('resetCalculator'));
 }
 
+action(el:HTMLInputElement,value:string){
 
+  el.dispatchEvent(new KeyboardEvent('keydown',{
+    key:value
+  }));
+  el.focus();
+}
 
 }
 

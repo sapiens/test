@@ -31,7 +31,7 @@ private addActionNumber(val:string,type?:OperatorType){
 }
 
 
-  @HostListener('keyup', ['$event'])
+  @HostListener('keydown', ['$event'])
   onKeyUp(event) {
 
     let e = <KeyboardEvent>event;

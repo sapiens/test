@@ -1,18 +1,109 @@
 <!--The content below is only a placeholder and can be replaced.-->
 
-<p [innerHTML]="actions.formattedActions | async"></p>
 
-<input #inp appNumbersOnly Calculator>
-<button (click)="reset(inp)">Reset</button>
-<button (click)="actions.undo()" [disabled]="actions.cantUndo">Undo</button>
-<button (click)="actions.redo()" [disabled]="actions.cantRedo">Redo</button>
-<p>
-Result:<b>{{svc.lastResult}}</b>
-</p>
 
-<ul>
-  <li *ngFor="let item of svc.Operations">
-       {{item.type| opType}} {{item.value}}
-  </li>
-</ul>
+
+
+
+
+<style>
+  button{
+    font-weight: bold;
+    font-size:1.3em;
+    background-color: #ebebeb;
+  }
+.center{
+  text-align:center;
+}
+
+.result{
+  position: relative;
+  top:7px;
+  font-weight: bold;
+  text-align: center;
+  font-size:1.3em;
+}
+
+.calc-area{
+ margin-top:2rem;
+ margin-left:2rem;
+  width:600px;
+  padding:10px;
+  padding-top:20px;
+  border:1px solid rgb(211, 211, 211);
+  border-radius: 4px;
+}
+
+.mat-form-field{
+  width:90%;
+
+}
+.stack{
+  text-align: right;
+  font-weight: bold;
+  height: 1rem;
+}
+
+.relative{
+  position:relative;
+}
+input{
+  text-align: right;
+  font-weight: bold;
+  font-size:1.3em;
+}
+
+</style>
+
+<div class="calc-area">
+    <div class="grid-top">
+
+      <div class="col-8 relative">
+          <p class="stack" [innerHTML]="actions.formattedActions | async"></p>
+        <mat-form-field>
+          <input matInput #inp appNumbersOnly Calculator>
+        </mat-form-field>
+      </div>
+      <div class="col-2">
+          <button mat-button (click)="action(inp,'=')">=</button>
+      </div>
+      <div class="col-2 center result">
+          {{svc.lastResult}}
+      </div>
+      <div class="col-8 grid-center">
+        <div class="col-4" *ngFor="let no of [7,8,9,4,5,6,1,2,3]">
+            <button mat-button (click)="action(inp,no)">{{no}}</button>
+        </div>
+        <div class="col-8" style="text-align: center">
+            <button style="width:100%" mat-button (click)="action(inp,'0')">0</button>
+          </div>
+
+          <div class="col-4">
+              <button mat-button (click)="action(inp,'.')">.</button>
+          </div>
+
+
+      </div>
+      <div class="col-2 grid-1">
+        <div class="col" *ngFor="let v of ['+','-','*','/']">
+          <button mat-button (click)="action(inp,v)">{{v}}</button>
+        </div>
+      </div>
+
+      <div class="col-2 grid-1">
+        <div class="col">
+            <button mat-button (click)="reset(inp)">Clear</button>
+        </div>
+<div class="col"><button mat-button (click)="actions.undo()" [disabled]="actions.cantUndo">Undo</button></div>
+<div class="col"><button mat-button (click)="actions.redo()" [disabled]="actions.cantRedo">Redo</button></div>
+
+      </div>
+      </div>
+
+
+
+
+
+
+</div>
 
