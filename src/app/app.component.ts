@@ -1,4 +1,7 @@
+import { OperationType, OperationEvent, CalculatorService } from './model';
 import { Component } from '@angular/core';
+import { Key } from 'protractor';
+
 
 @Component({
   selector: 'app-root',
@@ -6,5 +9,22 @@ import { Component } from '@angular/core';
   styleUrls: ['./app.component.css']
 })
 export class AppComponent {
-  title = 'app';
+ value="";
+
+
+
+
+
+
+constructor(private svc:CalculatorService) {
+
+
 }
+
+reset(input:HTMLInputElement){
+  input.dispatchEvent(new Event('resetCalculator'));
+}
+
+
+}
+
