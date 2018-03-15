@@ -75,14 +75,13 @@ export class InputActionsService{
 
   private _actions=[];
 
-  private _undos=[];
+  private _redos=[];
 
   reset() {
 
     this._actions=[];
-    this._undos=[];
+    this._redos=[];
     this.updateActionsChanged();
-    //this.formattedActions.next("");
    }
   add(action:any){
 
@@ -105,7 +104,7 @@ export class InputActionsService{
     this._actions.push(action);
 
 
-      this._undos=[];
+      this._redos=[];
       this.updateActionsChanged();
   }
 
@@ -136,21 +135,21 @@ export class InputActionsService{
   private updateActionsChanged() {
     this.formattedActions.next(this._actions.join(''));
     this.cantUndo = this._actions.length == 0;
-    this.cantRedo= this._undos.length==0;
+    this.cantRedo= this._redos.length==0;
   }
 
   undo(){
     if (this._actions.length>0)
     {
-      this._undos.push(this._actions.pop());
+      this._redos.push(this._actions.pop());
 
       this.updateActionsChanged();
     }
   }
 
   redo(){
-   if(this._undos.length==0)   return;
-   this._actions.push(this._undos.pop());
+   if(this._redos.length==0)   return;
+   this._actions.push(this._redos.pop());
    this.updateActionsChanged();
   }
 
@@ -176,23 +175,6 @@ export class InputActionsService{
   }
 }
 
-// class Case{
-//   static For(val:any):Case{
-//     return new Case(val);
-//   }
-//   constructor(private val:any){
-
-//   }
-//   when<T>(action:(item:T)=>void):Case{
-
-//     var d=this.val as T;
-//     console.log(d);
-//       if (d!=undefined && d!==null){
-//         action(d);
-//       }
-//       return this;
-//   }
-// }
 
 @Injectable()
 export class CalculatorService {
@@ -213,6 +195,7 @@ export class CalculatorService {
     handleNumerics(item:NumericOperationEvent,currentBlock:BlockExpression):BlockExpression{
     function doAdd(val:number){
       var b=new BlockExpression(currentBlock);
+      currentBlock.Add(b);
       b.Add(new ConstantExpression(val))
     }
 
@@ -227,48 +210,65 @@ export class CalculatorService {
          var right=new ConstantExpression(item.value);
          currentBlock.replaceLast(new BinaryExpression(currentBlock.Previous,right,OperatorType.Multiply));
          break;
+        case OperatorType.Divide:
+         var right=new ConstantExpression(item.value);
+         currentBlock.replaceLast(new BinaryExpression(currentBlock.Previous,right,OperatorType.Divide));
+         break;
 
       }
       return currentBlock;
   }
 
 handleBlocks(item:BlockOperationEvent,currentBlock:BlockExpression):BlockExpression{
- console.log("from block");
-  if (item.isEnd) return currentBlock.parent;
- var b=new BlockExpression(currentBlock);
- b.Add(new ConstantExpression(0));
- return b;
+
+
+    if (item.isEnd) return currentBlock.parent;
+    let prev=currentBlock.Previous;
+
+  switch(item.type){
+
+    case OperatorType.Add:
+    let b=new BlockExpression(currentBlock);
+    currentBlock.Add(b);
+    return b;
+
+
+    case OperatorType.Substract:
+
+    let newB=new BlockExpression(currentBlock);
+    currentBlock.Add(new NegateExpression(newB));
+
+    return newB;
+
+    case OperatorType.Multiply:
+    let b2=new BlockExpression(currentBlock);
+    currentBlock.replaceLast(new BinaryExpression(currentBlock.Previous,b2,OperatorType.Multiply));
+    return b2;
+    case OperatorType.Divide:
+    let bd=new BlockExpression(currentBlock);
+    currentBlock.replaceLast(new BinaryExpression(currentBlock.Previous,bd,OperatorType.Divide));
+    return bd;
+
+  }
+return null;
+
 }
 
-currentBlock;
   calculate(evs:Array<OperationEvent>): void {
 
 
     this.body = new BlockExpression();
-    this.currentBlock = this.body;
+    let currentBlock = this.body;
     evs.forEach(item => {
 
-     if(item instanceof NumericOperationEvent) this.currentBlock=this.handleNumerics(item as NumericOperationEvent,this.currentBlock);
-     if(item instanceof BlockOperationEvent) this.currentBlock=this.handleBlocks(item as BlockOperationEvent,this.currentBlock);
+     if(item instanceof NumericOperationEvent) currentBlock=this.handleNumerics(item as NumericOperationEvent,currentBlock);
+     if(item instanceof BlockOperationEvent) currentBlock=this.handleBlocks(item as BlockOperationEvent,currentBlock);
 
 
-      //    case OperationType.Multiply:
-      //    var right=new ConstantExpression(item.value);
-      //    currentBlock.replaceLast(new BinaryExpression(currentBlock.Previous,right,OperationType.Multiply));
-      //    break;
-      //    case OperationType.StartBlock:
-      //    let b3=new BlockExpression(currentBlock);
-      //    b3.Add(new ConstantExpression(0));
-      //    currentBlock=b3;
-      //    break;
-      //    case OperationType.StartBlock:
-      //    currentBlock=currentBlock.parent;
-      //    break;
-      //   }
     });
 
     this.lastResult = this.body.Calculate();
-    //console.log(this.body);
+    console.log(this.body);
   }
   public lastResult = 0;
 }
@@ -276,6 +276,20 @@ currentBlock;
 class Expression {
   Calculate(): number {
     return 0;
+  }
+}
+
+class NegateExpression extends Expression{
+  /**
+   *
+   */
+  constructor(private val:Expression) {
+    super();
+
+  }
+
+  Calculate():number{
+    return -this.val.Calculate();
   }
 }
 
@@ -300,6 +314,7 @@ class BinaryExpression extends Expression {
     switch (this.type) {
       case OperatorType.Add: return this.left.Calculate() + this.right.Calculate();
       case OperatorType.Multiply: return this.left.Calculate() * this.right.Calculate();
+      case OperatorType.Divide: return this.left.Calculate() / this.right.Calculate();
 
     }
   }
@@ -315,21 +330,26 @@ class BlockExpression extends Expression {
 
   constructor(public parent?: BlockExpression) {
     super();
+  }
 
-    if (parent) parent.Add(this);
+  setParent(parent:BlockExpression){
+    this.parent=parent;
   }
 
   Add(expr: Expression) {
     this._list.push(expr);
   }
 
+  addDefault(){
+    this.Add(new ConstantExpression(0));
+  }
 
 
   get Previous(): Expression { return this._list[this._list.length - 1] }
 
   Calculate() {
-    var rez = 0;
-    for (let item of this._list) rez += item.Calculate();
-    return rez;
+    var res = 0;
+    for (let item of this._list) res += item.Calculate();
+    return res;
   }
 }
