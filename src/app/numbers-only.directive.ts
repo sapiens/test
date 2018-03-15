@@ -11,13 +11,14 @@ export class NumbersOnlyDirective {
   @HostListener('keydown', ['$event']) onKeyDown(event) {
 
     let e = <KeyboardEvent> event;
-      let code=e.key.charCodeAt(0);
-
+    //yep, a hack because AsCII/Utf crap
+    let code=e.isTrusted?e.keyCode:e.key.charCodeAt(0);
+       console.log(code);
 
       //little hack to update the input, except operators
      if(!e.isTrusted && !(code==40 || code ==41 || code ==61)) event.target.value+=e.key;
 
-      if ([46, 8, 9, 27, 13, 110, 190].indexOf(code) !== -1 ||
+      if ([46, 8, 9, 27, 13,190].indexOf(code) !== -1 ||
 
 
 

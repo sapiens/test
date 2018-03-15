@@ -10,7 +10,7 @@ import { Component } from '@angular/core';
 export class AppComponent {
  value="";
 
-constructor(private svc:CalculatorService, private actions:InputActionsService) {
+constructor(public svc:CalculatorService, public actions:InputActionsService) {
 
 this.actions.isReset.subscribe(r=> this.svc.reset());
 }
