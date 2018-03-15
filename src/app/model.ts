@@ -72,6 +72,7 @@ export class BlockAction{
 export class InputActionsService{
 
 
+  isReset=new BehaviorSubject<boolean>(false);
 
   private _actions=[];
 
@@ -82,9 +83,11 @@ export class InputActionsService{
     this._actions=[];
     this._redos=[];
     this.updateActionsChanged();
+    this.ended=false;
+    this.isReset.next(true);
    }
   add(action:any){
-
+  if(this.ended) this.reset();
     if(this.isOperator(action)){
       let last=this._actions.pop();
 
@@ -112,8 +115,10 @@ export class InputActionsService{
    let last=this._actions.pop();
    if(!this.isOperator(last)) this._actions.push(last);
    this.updateActionsChanged();
+   this.ended=true;
   }
 
+  private ended=false;
    private isOperator(action):boolean{
 
      return action instanceof OperatorAction;

@@ -13,7 +13,7 @@ export class AppComponent {
 
 constructor(private svc:CalculatorService, private actions:InputActionsService) {
 
-
+this.actions.isReset.subscribe(r=> this.svc.reset());
 }
 
 
