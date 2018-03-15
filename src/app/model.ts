@@ -355,6 +355,6 @@ class BlockExpression extends Expression {
   Calculate() {
     var res = 0;
     for (let item of this._list) res += item.Calculate();
-    return res;
+    return Math.round(res*10000)/10000;
   }
 }
