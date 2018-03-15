@@ -22,10 +22,12 @@ export class BlockOperationEvent extends OperationEvent {
   /**
    *
    */
-  constructor(public type: OperatorType, public begin: boolean) {
+  constructor(public type: OperatorType, public start: boolean) {
     super();
-
+    this.isEnd=!start;
   }
+
+  isEnd=false;
 }
 
 
@@ -58,12 +60,17 @@ export class OperatorAction{
 }
 
 export class BlockAction{
+  constructor(public start:boolean){
 
+  }
+
+  toString(){return this.start?"(":")"};
 }
 
 
 @Injectable()
 export class InputActionsService{
+
 
 
   private _actions=[];
@@ -78,10 +85,49 @@ export class InputActionsService{
     //this.formattedActions.next("");
    }
   add(action:any){
-      this._actions.push(action);
+
+    if(this.isOperator(action)){
+      let last=this._actions.pop();
+
+      if(last!=undefined && !this.isOperator(last)) this._actions.push(last);
+    }
+
+    if(this.isBlock(action)){
+      let block=<BlockAction>action;
+      let last=this._actions.pop();
+      if(this.isBlock(last)) {
+        this.updateActionsChanged();
+        return;
+      }
+      if(last!=undefined && !(!block.start && this.isOperator(last))) this._actions.push(last);
+    }
+
+    this._actions.push(action);
+
+
       this._undos=[];
       this.updateActionsChanged();
   }
+
+  endInput(){
+   let last=this._actions.pop();
+   if(!this.isOperator(last)) this._actions.push(last);
+   this.updateActionsChanged();
+  }
+
+   private isOperator(action):boolean{
+
+     return action instanceof OperatorAction;
+   }
+   private isValue(action):boolean{
+
+     return action instanceof ValueAction;
+   }
+   private isBlock(action):boolean{
+
+     return action instanceof BlockAction;
+   }
+
 
   formattedActions:BehaviorSubject<string>= new BehaviorSubject<string>("");
 
@@ -97,14 +143,15 @@ export class InputActionsService{
     if (this._actions.length>0)
     {
       this._undos.push(this._actions.pop());
-      this.cantRedo=false;
+
       this.updateActionsChanged();
     }
   }
 
   redo(){
    if(this._undos.length==0)   return;
-   this.add(this._undos.pop());
+   this._actions.push(this._undos.pop());
+   this.updateActionsChanged();
   }
 
   getEvents():Array<OperationEvent>{
@@ -114,7 +161,10 @@ export class InputActionsService{
       let act=this._actions[i];
       if (act instanceof ValueAction)  rez.push(this.processValue(act as ValueAction,lastOperator));
       if (act instanceof OperatorAction) lastOperator=(<OperatorAction>act).operator;
-      if (act instanceof BlockAction) lastOperator=(<OperatorAction>act).operator;
+      if (act instanceof BlockAction) {
+                rez.push(new BlockOperationEvent(lastOperator,(<BlockAction>act).start));
+                lastOperator=OperatorType.Add;
+      }
 
     }
     return rez;
@@ -125,6 +175,24 @@ export class InputActionsService{
    return new NumericOperationEvent(val.value,lastOp);
   }
 }
+
+// class Case{
+//   static For(val:any):Case{
+//     return new Case(val);
+//   }
+//   constructor(private val:any){
+
+//   }
+//   when<T>(action:(item:T)=>void):Case{
+
+//     var d=this.val as T;
+//     console.log(d);
+//       if (d!=undefined && d!==null){
+//         action(d);
+//       }
+//       return this;
+//   }
+// }
 
 @Injectable()
 export class CalculatorService {
@@ -142,25 +210,48 @@ export class CalculatorService {
     this.lastResult = 0;
   }
 
+    handleNumerics(item:NumericOperationEvent,currentBlock:BlockExpression):BlockExpression{
+    function doAdd(val:number){
+      var b=new BlockExpression(currentBlock);
+      b.Add(new ConstantExpression(val))
+    }
+
+      switch(item.type){
+        case OperatorType.Add:
+        doAdd(item.value);
+        break;
+        case OperatorType.Substract:
+        doAdd(-item.value);
+        break;
+        case OperatorType.Multiply:
+         var right=new ConstantExpression(item.value);
+         currentBlock.replaceLast(new BinaryExpression(currentBlock.Previous,right,OperatorType.Multiply));
+         break;
+
+      }
+      return currentBlock;
+  }
+
+handleBlocks(item:BlockOperationEvent,currentBlock:BlockExpression):BlockExpression{
+ console.log("from block");
+  if (item.isEnd) return currentBlock.parent;
+ var b=new BlockExpression(currentBlock);
+ b.Add(new ConstantExpression(0));
+ return b;
+}
+
+currentBlock;
   calculate(evs:Array<OperationEvent>): void {
+
+
     this.body = new BlockExpression();
-    let currentBlock = this.body;
+    this.currentBlock = this.body;
     evs.forEach(item => {
 
-      // switch(item.type){
-      //   case OperationType.Add:
-      //       // let parent=this.body;
-      //       // if (currentBlock.parent) parent=currentBlock.parent;
+     if(item instanceof NumericOperationEvent) this.currentBlock=this.handleNumerics(item as NumericOperationEvent,this.currentBlock);
+     if(item instanceof BlockOperationEvent) this.currentBlock=this.handleBlocks(item as BlockOperationEvent,this.currentBlock);
 
-      //       let b=new BlockExpression(currentBlock);
-      //       b.Add(new ConstantExpression(item.value));
 
-      //       break;
-      //    case OperationType.Substract:
-      //       let b2=new BlockExpression(currentBlock);
-      //       b2.Add(new ConstantExpression(-item.value));
-
-      //       break;
       //    case OperationType.Multiply:
       //    var right=new ConstantExpression(item.value);
       //    currentBlock.replaceLast(new BinaryExpression(currentBlock.Previous,right,OperationType.Multiply));
@@ -177,7 +268,7 @@ export class CalculatorService {
     });
 
     this.lastResult = this.body.Calculate();
-    console.log(this.body);
+    //console.log(this.body);
   }
   public lastResult = 0;
 }

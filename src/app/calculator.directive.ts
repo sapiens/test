@@ -1,4 +1,4 @@
-import { CalculatorService, NumericOperationEvent, OperatorType, OperationEvent, BlockOperationEvent, InputActionsService, ValueAction, OperatorAction } from './model';
+import { CalculatorService, NumericOperationEvent, OperatorType, OperationEvent, BlockOperationEvent, InputActionsService, ValueAction, OperatorAction, BlockAction } from './model';
 import { Directive, ElementRef, HostListener } from '@angular/core';
 
 
@@ -20,9 +20,12 @@ export class CalculatorDirective {
 
 
 
-private addActionNumber(number:number,type:OperatorType){
-  this.actions.add(new ValueAction(number));
-  this.actions.add(new OperatorAction(type));
+private addActionNumber(val:string,type?:OperatorType){
+ console.log(val);
+  if (val!=="" && val!=null && val!=undefined) {
+  this.actions.add(new ValueAction(Number.parseFloat(val)));
+ }
+  if(type) this.actions.add(new OperatorAction(type));
 
   this.domElement.value="";
 }
@@ -38,52 +41,37 @@ private addActionNumber(number:number,type:OperatorType){
     switch (e.key) {
 
       case '+':
-        this.addActionNumber(Number.parseFloat(val),OperatorType.Add);
+            this.addActionNumber(val,OperatorType.Add);
         break;
       case '-':
-
+      this.addActionNumber(val,OperatorType.Substract);
 
         break;
       case '*':
+      this.addActionNumber(val,OperatorType.Multiply);
 
         break;
       case '/':
+      this.addActionNumber(val,OperatorType.Divide);
 
         break;
       case '(':
-
+       this.actions.add(new BlockAction(true));
 
         break;
       case ')':
-
+      this.addActionNumber(val);
+      this.actions.add(new BlockAction(false));
 
         break;
 
       case '=':
-      this.addActionNumber(Number.parseFloat(val),OperatorType.Add);
-      this.actions.getEvents()
+      this.addActionNumber(val,OperatorType.Add);
+       this.actions.endInput();
+      this.svc.calculate(this.actions.getEvents());
     }
 
   }
 
-  //  operators=["+","-","*","/","(",")"];
 
-  //   private getLastNumber(val: string): number {
-
-  //     console.log(`Value: ${val}`);
-
-  //     let text=[];
-  //     let last=val.length-1;
-  //     if(this.operators.includes(val[val.length-1])){
-  //       last=val.length-2;
-  //     }
-  //     for(let i=last;i>=0;i--){
-  //       var v=val[i];
-  //       if(this.operators.includes(v)) break;
-  //       text.push(v);
-  //     }
-  //     let rez=Number.parseFloat(text.reverse().join(''));
-  //     console.log(`rez: ${rez}`);
-  //     return rez;
-  //   }
 }
