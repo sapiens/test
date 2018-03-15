@@ -1,4 +1,4 @@
-import { OperationType, OperationEvent, CalculatorService } from './model';
+import { OperatorType, NumericOperationEvent, CalculatorService, InputActionsService } from './model';
 import { Component } from '@angular/core';
 import { Key } from 'protractor';
 
@@ -11,19 +11,20 @@ import { Key } from 'protractor';
 export class AppComponent {
  value="";
 
-
-
-
-
-
-constructor(private svc:CalculatorService) {
+constructor(private svc:CalculatorService, private actions:InputActionsService) {
 
 
 }
+
+
+
 
 reset(input:HTMLInputElement){
+  this.actions.reset();
+  this.svc.reset();
   input.dispatchEvent(new Event('resetCalculator'));
 }
+
 
 
 }

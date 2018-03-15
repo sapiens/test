@@ -1,5 +1,5 @@
 import { Pipe, PipeTransform } from '@angular/core';
-import { OperationType } from './model';
+import { OperatorType } from './model';
 
 @Pipe({
   name: 'opType'
@@ -7,7 +7,7 @@ import { OperationType } from './model';
 export class OpTypePipe implements PipeTransform {
 
   transform(value: any, args?: any): any {
-    return OperationType[value];
+    return OperatorType[value];
   }
 
 }

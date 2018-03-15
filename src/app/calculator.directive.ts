@@ -1,4 +1,4 @@
-import { CalculatorService, OperationEvent, OperationType } from './model';
+import { CalculatorService, NumericOperationEvent, OperatorType, OperationEvent, BlockOperationEvent, InputActionsService, ValueAction, OperatorAction } from './model';
 import { Directive, ElementRef, HostListener } from '@angular/core';
 
 
@@ -6,85 +6,84 @@ import { Directive, ElementRef, HostListener } from '@angular/core';
   selector: '[Calculator]'
 })
 export class CalculatorDirective {
+  private domElement:HTMLInputElement;
 
-  constructor(private el: ElementRef, private svc: CalculatorService) {
-
+  constructor(private el: ElementRef, private svc: CalculatorService, private actions:InputActionsService) {
+    this.domElement=<HTMLInputElement>this.el.nativeElement;
   }
 
-  lastOperator = OperationType.Add;
+  @HostListener('resetCalculator')
+  onreset() {
+    this.domElement.value="";
+  }
 
-@HostListener('resetCalculator')
-onreset(){
-  var input=<HTMLInputElement>this.el.nativeElement;
-  input.value='';
-  this.lastOperator=OperationType.Add;
 
-  this.svc.reset();
+
+
+private addActionNumber(number:number,type:OperatorType){
+  this.actions.add(new ValueAction(number));
+  this.actions.add(new OperatorAction(type));
+
+  this.domElement.value="";
 }
 
-  @HostListener('keyup', ['$event']) onKeyUp(event) {
+
+  @HostListener('keyup', ['$event'])
+  onKeyUp(event) {
 
     let e = <KeyboardEvent>event;
-    let val = (<HTMLInputElement>e.target).value;
+    const field = (<HTMLInputElement>e.target);
+    let val = field.value;
 
     switch (e.key) {
-      case '+':
-        this.svc.register(new OperationEvent(this.getLastNumber(val), this.lastOperator));
-        this.lastOperator = OperationType.Add;
 
+      case '+':
+        this.addActionNumber(Number.parseFloat(val),OperatorType.Add);
         break;
       case '-':
-        this.svc.register(new OperationEvent(this.getLastNumber(val), this.lastOperator));
-        this.lastOperator = OperationType.Substract;
+
 
         break;
       case '*':
-        this.svc.register(new OperationEvent(this.getLastNumber(val), this.lastOperator));
-        this.lastOperator = OperationType.Multiply;
 
         break;
       case '/':
-        this.svc.register(new OperationEvent(this.getLastNumber(val), this.lastOperator));
-        this.lastOperator = OperationType.Substract;
 
         break;
       case '(':
-        this.svc.register(new OperationEvent(0, this.lastOperator));
-        this.lastOperator = OperationType.StartBlock;
+
 
         break;
       case ')':
-        this.svc.register(new OperationEvent(0, OperationType.EndBlock));
-        this.lastOperator = OperationType.Add;
+
 
         break;
 
-        case '=':
-        this.svc.register(new OperationEvent(this.getLastNumber(val), this.lastOperator));
-
-        this.svc.calculate();break;
+      case '=':
+      this.addActionNumber(Number.parseFloat(val),OperatorType.Add);
+      this.actions.getEvents()
     }
 
   }
 
- operators=["+","-","*","/","(",")"];
+  //  operators=["+","-","*","/","(",")"];
 
-  private getLastNumber(val: string): number {
+  //   private getLastNumber(val: string): number {
 
-    console.log(`Value: ${val}`);
+  //     console.log(`Value: ${val}`);
 
-    let text=[];
-    let last=val.length-1;
-    if(this.operators.includes(val[val.length-1])){
-      last=val.length-2;
-    }
-    for(let i=last;i>=0;i--){
-      var v=val[i];
-      if(this.operators.includes(v)) break;
-      text.push(v);
-    }
-    let rez=Number.parseFloat(text.reverse().join(''));
-    console.log(`rez: ${rez}`);
-    return rez;
-  }
+  //     let text=[];
+  //     let last=val.length-1;
+  //     if(this.operators.includes(val[val.length-1])){
+  //       last=val.length-2;
+  //     }
+  //     for(let i=last;i>=0;i--){
+  //       var v=val[i];
+  //       if(this.operators.includes(v)) break;
+  //       text.push(v);
+  //     }
+  //     let rez=Number.parseFloat(text.reverse().join(''));
+  //     console.log(`rez: ${rez}`);
+  //     return rez;
+  //   }
 }

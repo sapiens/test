@@ -1,4 +1,4 @@
-import { CalculatorService } from './model';
+import { CalculatorService, InputActionsService } from './model';
 import { BrowserModule } from '@angular/platform-browser';
 import { NgModule } from '@angular/core';
 
@@ -7,6 +7,7 @@ import { AppComponent } from './app.component';
 import { OpTypePipe } from './op-type.pipe';
 import { NumbersOnlyDirective } from './numbers-only.directive';
 import { CalculatorDirective } from './calculator.directive';
+import { ShowStackPipe } from './show-stack.pipe';
 
 
 @NgModule({
@@ -14,12 +15,13 @@ import { CalculatorDirective } from './calculator.directive';
     AppComponent,
     OpTypePipe,
     NumbersOnlyDirective,
-    CalculatorDirective
+    CalculatorDirective,
+    ShowStackPipe
   ],
   imports: [
     BrowserModule
   ],
-  providers: [CalculatorService],
+  providers: [CalculatorService,InputActionsService],
   bootstrap: [AppComponent]
 })
 export class AppModule { }

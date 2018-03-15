@@ -1,5 +1,11 @@
 <!--The content below is only a placeholder and can be replaced.-->
-<input #inp appNumbersOnly Calculator> <button (click)="reset(inp)">Reset</button>
+
+<p [innerHTML]="actions.formattedActions | async"></p>
+
+<input #inp appNumbersOnly Calculator>
+<button (click)="reset(inp)">Reset</button>
+<button (click)="actions.undo()" [disabled]="actions.cantUndo">Undo</button>
+<button (click)="actions.redo()" [disabled]="actions.cantRedo">Redo</button>
 <p>
 Result:<b>{{svc.lastResult}}</b>
 </p>
