@@ -12,10 +12,9 @@ export class NumbersOnlyDirective {
 
     let e = <KeyboardEvent> event;
       let code=e.key.charCodeAt(0);
-      console.log(e);
+
 
       //little hack to update the input, except operators
-
      if(!e.isTrusted && !(code==40 || code ==41 || code ==61)) event.target.value+=e.key;
 
       if ([46, 8, 9, 27, 13, 110, 190].indexOf(code) !== -1 ||
@@ -39,13 +38,13 @@ export class NumbersOnlyDirective {
           return;
         }
 
-        console.log(code);
+
         // Ensure that it is a number and stop the keypress
-        if ( (e.shiftKey || (code < 48 || code > 57)) && (code < 96 || code > 105)) {
 
-          e.preventDefault();
-        }
+        if (['0','1','2','3','4','5','6','7','8','9','.'].indexOf(e.key)==-1) e.preventDefault();
 
+
+        console.log(code);
       }
 
 }
