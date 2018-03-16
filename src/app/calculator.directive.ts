@@ -1,5 +1,6 @@
 import { CalculatorService, NumericOperationEvent, OperatorType, OperationEvent, BlockOperationEvent, InputActionsService, ValueAction, OperatorAction, BlockAction } from './model';
 import { Directive, ElementRef, HostListener } from '@angular/core';
+import { isNumber } from 'util';
 
 
 @Directive({
@@ -22,8 +23,10 @@ export class CalculatorDirective {
 
 private addActionNumber(val:string,type?:OperatorType){
  console.log(val);
+
   if (val!=="" && val!=null && val!=undefined) {
-  this.actions.add(new ValueAction(Number.parseFloat(val)));
+    const number = Number.parseFloat(val);
+   if (!isNaN(number))this.actions.add(new ValueAction(number));
  }
   if(type) this.actions.add(new OperatorAction(type));
 

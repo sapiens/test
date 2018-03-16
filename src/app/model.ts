@@ -87,7 +87,9 @@ export class InputActionsService{
     this.isReset.next(true);
    }
   add(action:any){
-  if(this.ended) this.reset();
+
+    if(this.ended) this.reset();
+
     if(this.isOperator(action)){
       let last=this._actions.pop();
 
@@ -97,11 +99,22 @@ export class InputActionsService{
     if(this.isBlock(action)){
       let block=<BlockAction>action;
       let last=this._actions.pop();
-      if(this.isBlock(last)) {
-        this.updateActionsChanged();
-        return;
+      if (last!=undefined){
+        if(
+          (this.isBlock(last) && (last.start != block.start))
+          || (this.isValue(last) && block.start)
+          || (this.isOperator(last) && !block.start)
+
+        )
+         {
+          this.updateActionsChanged();
+          return;
+        }
+
+        this._actions.push(last);
       }
-      if(last!=undefined && !(!block.start && this.isOperator(last))) this._actions.push(last);
+
+
     }
 
     this._actions.push(action);
